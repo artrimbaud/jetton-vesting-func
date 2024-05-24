@@ -1,0 +1,10 @@
+
+#include "storage.fc";
+
+(int) address::is_collection_address(slice _addr) inline {
+    return equal_slices(_addr, storage::collection_address);
+}
+
+(int) address::is_owner_address(slice _addr) inline {
+    return equal_slices(_addr, storage::owner_address);
+}

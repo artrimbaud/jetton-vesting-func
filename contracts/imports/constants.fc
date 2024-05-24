@@ -1,0 +1,57 @@
+{- EXCEPTIONS -}
+
+const int exc::out_of_gas = 13; ;;
+const int exc::incorrect_sender = 50; ;;
+const int exc::transfer_not_allowed = 51;
+const int exc::already_claimed = 53; ;;
+
+const int exc::incorrect_vesting_and_cliff_data = 54;
+
+const int exc::only_owner_can_transfer = 401;
+const int exc::excess_in_the_slice = 708;
+const int exc::not_enough_gas = 402;
+
+const int exc::unsupported_op = 0xffff; ;;
+
+
+
+{- GAS -}
+
+const int gas::provide_addr          = 20000000;   ;; 0.02  TON ;;
+const int gas::jetton_transfer       = 55000000;   ;; 0.055 TON ;;
+const int gas::change_state_safe      = 10000000;   ;; 0.01  TON ;;
+const int gas::claim_safe             = 200000000;  ;; 0.20  TON ;;
+const int gas::min_tons_for_storage  = 50000000;   ;; 0.05  TON
+
+
+{- OP-CODES -}
+
+;; Common
+const int op::excesses               = 0xd53276db;
+
+;; Jettons
+const int op::transfer_jetton        = 0xf8a7ea5; ;;
+const int op::transfer_notification  = 0x7362d09c; ;;
+const int op::provide_wallet_address = 0x2c76b973; ;;
+const int op::take_wallet_address    = 0xd1735400; ;; 
+
+
+;; Safe
+const int op::transfer_safe           = 0x5fcc3d14;
+const int op::ownership_assigned_safe = 0x05138d91;
+const int op::claim_safe              = 0xa769de27; ;;
+const int op::change_state_safe       = 0xdca3da4c;
+
+
+
+{- MESSAGE MODES -}
+
+const int mode::simple                  = 0;
+const int mode::carry_remaining_gas     = 64;
+const int mode::carry_remaining_balance = 128;
+
+const int mode::pay_fees_separately     = 1;
+const int mode::ignore_errors           = 2;
+const int mode::bounce_on_fail          = 16;
+const int mode::selfdestruct_on_empty   = 32;
+

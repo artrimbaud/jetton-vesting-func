@@ -1,0 +1,50 @@
+
+#include "package.fc";
+
+global int storage::init?;                 
+
+global int storage::collection_index;        
+global slice storage::collection_address; 
+
+global slice storage::owner_address;
+
+global int storage::vesting_total_amount;
+global int storage::claimed_amount;
+
+global cell storage::vesting_and_cliff_data; 
+;; Contains: 
+;; vesting_start_time
+;; cliff_duration
+;; vesting_total_duration
+;; unlock_period
+;; initially_unlocked_percentage
+
+global int storage::is_active; 
+global int storage::is_transferable; ;; does this safe allows transfers
+
+() storage::load_data() impure inline {
+    slice ds = get_data().begin_parse();
+
+    storage::collection_index = ds~load_uint(32);
+    storage::collection_address = ds~load_msg_addr();
+    storage::init? = 0;
+
+    if (ds.slice_bits() > 0) {
+        storage::init? = 1;
+        storage::owner_address = ds~load_msg_addr();
+
+        storage::vesting_total_amount = ds~load_coins();
+        storage::claimed_amount = ds~load_coins();
+
+        storage::vesting_and_cliff_data = ds~load_ref();
+        storage::is_active = ds~load_uint(1);
+        storage::is_transferable = ds~load_uint(1);
+    }
+}
+
+() storage::save_data() impure {
+    set_data(
+        package::pack_safe_data(storage::collection_index, storage::collection_address, storage::owner_address, 
+            storage::vesting_total_amount, storage::claimed_amount, storage::vesting_and_cliff_data, storage::is_active, storage::is_transferable)
+    );
+}

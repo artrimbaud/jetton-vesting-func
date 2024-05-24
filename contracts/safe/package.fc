@@ -1,0 +1,27 @@
+
+cell package::pack_safe_data(int collection_index, slice collection_address, slice owner_address, int vesting_total_amount, int claimed_amount, cell vesting_and_cliff_data, int is_active, int is_transferable) inline {
+    return begin_cell()
+                .store_uint(collection_index, 32)
+                .store_slice(collection_address)
+                .store_slice(owner_address)
+
+                .store_coins(vesting_total_amount)
+                .store_coins(claimed_amount)
+
+                .store_ref(vesting_and_cliff_data)
+                .store_uint(is_active, 1)
+                .store_uint(is_transferable, 1)
+            .end_cell();
+}
+
+(int, int, int, int, int) package::unpack_vesting_and_cliff_data(cell vesting_and_cliff_data) impure inline {
+    slice vesting_and_cliff_ds = vesting_and_cliff_data.begin_parse();
+
+    return (
+        vesting_and_cliff_ds~load_uint(32), 
+        vesting_and_cliff_ds~load_uint(32), 
+        vesting_and_cliff_ds~load_uint(32), 
+        vesting_and_cliff_ds~load_uint(32), 
+        vesting_and_cliff_ds~load_uint(32)
+    );
+}

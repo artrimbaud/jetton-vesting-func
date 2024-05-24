@@ -1,0 +1,55 @@
+#include "../imports/constants.fc";
+
+
+() send_provide_wallet_address_message(slice jetton_wallet_address) impure inline {
+
+    builder tmp = begin_cell()
+                .store_coins(gas::provide_addr)
+                .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+                .store_uint(op::provide_wallet_address, 32)
+                .store_uint(now(), 64)
+                .store_slice(my_address())
+                .store_uint(0, 1);
+
+    builder msg_rewards = begin_cell().store_uint(0x18, 6).store_slice(jetton_wallet_address).store_builder(tmp);
+    send_raw_message(msg_rewards.end_cell(), mode::pay_fees_separately);
+}
+
+() utils::send_change_safe_state_message(slice sender_address, int query_id, int future_claimed_jettons) impure inline {
+    
+    builder change_safe_state_msg = begin_cell()
+                                        .store_uint(0x18, 6)
+                                        .store_slice(sender_address)
+                                        .store_coins(gas::change_state_safe)
+                                        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1)
+                                        .store_uint(1, 1)
+                                        .store_ref(
+                                            begin_cell()
+                                                .store_uint(op::change_state_safe, 32)
+                                                .store_uint(query_id, 64)
+                                                .store_coins(future_claimed_jettons)
+                                            .end_cell()
+                                        );
+
+    send_raw_message(change_safe_state_msg.end_cell(), mode::simple);  ;; change safe state
+}
+
+(int) utils::is_vesting_and_cliff_data_correct(cell vesting_and_cliff_data) impure inline {
+    slice vesting_and_cliff_data_slice = vesting_and_cliff_data.begin_parse();
+
+    (int vesting_start_time,
+    int cliff_duration, 
+    int vesting_total_duration, 
+    int unlock_period,
+    int initially_unlocked_percentage) = ( vesting_and_cliff_data_slice~load_uint(32),
+                                           vesting_and_cliff_data_slice~load_uint(32), 
+                                           vesting_and_cliff_data_slice~load_uint(32),
+                                           vesting_and_cliff_data_slice~load_uint(32),
+                                           vesting_and_cliff_data_slice~load_uint(32));
+
+    if ((initially_unlocked_percentage >= 0) & (initially_unlocked_percentage <= 100)) {
+        return 1;
+    } else {
+        return 0;
+    }
+}

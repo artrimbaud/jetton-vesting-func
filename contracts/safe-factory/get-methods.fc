@@ -1,0 +1,20 @@
+#include "storage.fc";
+
+(int, int, cell, int, slice, int, slice) get_storage_data() method_id {
+    load_data();
+    
+    return (storage::init?, storage::next_item_index, storage::safe_item_code, storage::safe_type,
+    storage::jetton_wallet_address, storage::jetton_wallet_set, storage::creator_address);
+}
+
+
+(int) get_next_item_index() method_id {
+    load_data();
+    return storage::next_item_index;
+}
+
+
+(slice) get_safe_address_by_index(int item_index) method_id {
+    (_, _, _, _, _, _, slice safe_address) = get_storage_data();
+    return safe_address;
+}

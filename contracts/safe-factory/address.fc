@@ -1,0 +1,14 @@
+#include "storage.fc";
+
+(int) address::is_jetton_wallet_address(slice _addr) inline {
+    return equal_slices(_addr, storage::jetton_wallet_address);
+}
+
+(int) address::is_creator_address(slice _addr) inline {
+    return equal_slices(_addr, storage::creator_address);
+}
+
+(int) address::is_our_safe(int item_index, slice sender_address) inline {
+    slice expected_item_address = calculate_safe_address_by_index(my_address(), storage::safe_item_code, item_index);
+    return equal_slices(expected_item_address, sender_address);
+}

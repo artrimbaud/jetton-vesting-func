@@ -1,0 +1,103 @@
+#pragma version >=0.4.0;
+#include "../imports/stdlib.fc";
+#include "../imports/constants.fc";
+#include "../imports/utils.fc";
+
+#include "storage.fc";
+#include "get-methods.fc";
+#include "package.fc";
+#include "utils.fc";
+#include "address.fc";
+
+() recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+    slice cs = in_msg_full.begin_parse();
+    int flags = cs~load_uint(4);
+
+    if (flags & 1) { ;; bounced ignored
+        return ();
+    }
+
+    slice sender_address = cs~load_msg_addr();
+
+    load_data();
+
+
+    if (storage::init? == 0) {  ;; request jetton wallets' addresses after deploy
+        throw_unless(exc::incorrect_sender, address::is_creator_address(sender_address));
+        storage::init? = 1;
+
+        send_provide_wallet_address_message(storage::jetton_wallet_address);
+
+        save_data();
+        return ();
+    }
+
+
+    if (in_msg_body.slice_empty?()) { ;; ignore empty messages
+        return ();
+    }
+
+    int op = in_msg_body~load_uint(32);
+    int query_id = in_msg_body~load_uint(64);
+
+    if (op == op::take_wallet_address) {  ;; change jetton wallet address (used only once)
+        slice reported_wallet_address = in_msg_body~load_msg_addr();
+        if (address::is_jetton_wallet_address(sender_address) & (storage::jetton_wallet_set == 0)) {
+            storage::jetton_wallet_address = reported_wallet_address;
+            storage::jetton_wallet_set = 1;
+        }
+
+        save_data();
+        return ();
+    }
+
+    if  (op == op::transfer_notification) { ;; safe mint 
+
+        int transferred_jettons = in_msg_body~load_coins();
+        slice from_address = in_msg_body~load_msg_addr();
+        
+        ifnot (address::is_jetton_wallet_address(sender_address)) {
+            send_jettons(query_id, transferred_jettons, from_address, from_address, sender_address, 0, mode::carry_remaining_gas,
+                         0, begin_cell().store_uint(0, 32).store_slice("Check sender failed").end_cell());
+            return();
+        }
+
+        slice safe_data_slice = in_msg_body~load_ref().begin_parse();
+        slice jetton_receiver = safe_data_slice~load_msg_addr();
+        cell vesting_and_cliff_data = safe_data_slice~load_ref();
+
+        throw_unless(exc::incorrect_vesting_and_cliff_data, utils::is_vesting_and_cliff_data_correct(vesting_and_cliff_data));
+
+        cell safe_content = package::pack_safe_content(storage::next_item_index, jetton_receiver, transferred_jettons, vesting_and_cliff_data, storage::safe_type);
+        deploy_safe_item(storage::next_item_index, storage::safe_item_code, safe_content, my_address());  ;; deploy bond safe
+        
+        storage::next_item_index += 1;
+    
+        save_data();
+        return();
+    }
+
+    if (op == op::claim_safe) {
+        raw_reserve(0, 4); 
+
+        int item_index = in_msg_body~load_uint(32);
+        throw_unless(exc::incorrect_sender, address::is_our_safe(item_index, sender_address));  ;; check that safe belongs to this collection
+        
+
+        slice from_address = in_msg_body~load_msg_addr();
+        int jettons_to_transfer = in_msg_body~load_coins();
+        int future_claimed_jettons = in_msg_body~load_coins();
+
+        send_jettons(query_id, jettons_to_transfer, from_address, from_address, storage::jetton_wallet_address, gas::jetton_transfer, mode::simple, 
+                     1, begin_cell().store_uint(0, 32).store_slice("Rewards claimed").end_cell());  ;; send rewards
+
+        ;; change safe state
+        utils::send_change_safe_state_message(sender_address, query_id, future_claimed_jettons);
+        send_msg(from_address, 0, op::excesses, query_id, null(), mode::carry_remaining_balance);
+        return ();
+
+    }
+
+    throw(exc::unsupported_op);
+}
+

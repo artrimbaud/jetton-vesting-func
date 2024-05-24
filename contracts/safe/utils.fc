@@ -1,0 +1,81 @@
+#include "storage.fc";
+#include "../imports/constants.fc";
+#include "address.fc";
+
+
+() utils::freeze_safe() impure inline {
+    storage::is_active = 0;
+}
+
+() utils::unfreeze_safe() impure inline {
+    storage::is_active = 1;
+}
+
+(int) utils::is_unfreezed() impure inline {
+    return storage::is_active;
+}
+
+(int) utils::is_transferable() impure inline {
+    return storage::is_transferable;
+}
+
+() send_claim_message(int op, int query_id, int available_for_claim, int future_claimed_amount) impure inline {
+
+    cell msg_body = begin_cell()
+                            .store_uint(op, 32)
+                            .store_uint(query_id, 64)
+                            .store_uint(storage::collection_index, 32)
+                            .store_slice(storage::owner_address)
+                            .store_coins(available_for_claim) 
+                            .store_coins(future_claimed_amount)
+                        .end_cell();
+
+    builder msg = begin_cell()
+                        .store_uint(0x18, 6) 
+                        .store_slice(storage::collection_address)
+                        .store_coins(0)
+                        .store_uint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+                        .store_ref(msg_body);
+
+    send_raw_message(msg.end_cell(), mode::carry_remaining_gas | mode::bounce_on_fail);
+}
+
+;; Remains from simple safe
+;; We also need to add is_transferable check
+() utils::transfer_ownership(int my_balance, slice sender_address, int query_id, slice in_msg_body, int fwd_fees, int is_transferable) impure inline { 
+    throw_unless(exc::only_owner_can_transfer, address::is_owner_address(sender_address));
+    throw_unless(exc::transfer_not_allowed, utils::is_transferable());
+
+    slice new_owner_address = in_msg_body~load_msg_addr();
+    force_chain(new_owner_address);
+    slice response_destination = in_msg_body~load_msg_addr();
+    in_msg_body~skip_dict(); ;; this safe don't use custom_payload
+    int forward_amount = in_msg_body~load_coins();
+    if (in_msg_body.preload_uint(1)) {
+        ;; forward_payload in ref
+        (int remain_bits, int remain_refs) = slice_bits_refs(in_msg_body);
+        throw_unless(exc::excess_in_the_slice, (remain_refs == 1) & (remain_bits == 1)); ;; we check that there is no excess in the slice
+    }
+
+    int rest_amount = my_balance - gas::min_tons_for_storage;
+    if (forward_amount) {
+        rest_amount -= (forward_amount + fwd_fees);
+    }
+    int need_response = response_destination.preload_uint(2) != 0; ;; if NOT addr_none: 00
+    if (need_response) {
+        rest_amount -= fwd_fees;
+    }
+
+    throw_unless(exc::not_enough_gas, rest_amount >= 0); ;; base safe spends fixed amount of gas, will not check for response
+
+    if (forward_amount) {
+      send_msg(new_owner_address, forward_amount, op::ownership_assigned_safe, query_id, begin_cell().store_slice(storage::owner_address).store_slice(in_msg_body), mode::pay_fees_separately | mode::bounce_on_fail);  ;; paying fees, revert on errors
+    }
+    if (need_response) {
+      force_chain(response_destination);
+      send_msg(response_destination, rest_amount, op::excesses, query_id, null(), mode::pay_fees_separately | mode::bounce_on_fail); ;; paying fees, revert on errors
+    }
+
+    storage::owner_address = new_owner_address;
+    storage::save_data();
+}

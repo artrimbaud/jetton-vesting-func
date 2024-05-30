@@ -34,6 +34,7 @@
     send_raw_message(change_safe_state_msg.end_cell(), mode::simple);  ;; change safe state
 }
 
+
 (int) utils::is_vesting_and_cliff_data_correct(cell vesting_and_cliff_data) impure inline {
     slice vesting_and_cliff_data_slice = vesting_and_cliff_data.begin_parse();
 
@@ -46,8 +47,14 @@
                                            vesting_and_cliff_data_slice~load_uint(32),
                                            vesting_and_cliff_data_slice~load_uint(32),
                                            vesting_and_cliff_data_slice~load_uint(32));
+    vesting_and_cliff_data_slice.end_parse();
 
-    if ((initially_unlocked_percentage >= 0) & (initially_unlocked_percentage <= 100)) {
+    int now_time = now();
+
+    if ((initially_unlocked_percentage <= 100) & (now_time <= vesting_start_time)
+            & (cliff_duration <= vesting_total_duration) & (cliff_duration % unlock_period == 0) 
+            & (unlock_period <= vesting_total_duration) & (vesting_total_duration % unlock_period == 0)) 
+    {
         return 1;
     } else {
         return 0;

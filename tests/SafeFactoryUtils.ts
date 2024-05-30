@@ -72,3 +72,7 @@ export function openContractSafeFactory(
         ),
     );
 }
+
+export function hasAccountCreated(events: any[]): boolean {
+    return events.some(event => event.type === 'account_created');
+}

@@ -24,6 +24,7 @@ import {
     ExitCode,
     openContractJettonMinter,
     openContractSafeFactory,
+    hasAccountCreated,
 } from './SafeFactoryUtils';
 
 describe('Blockchain ', () => {
@@ -32,6 +33,7 @@ describe('Blockchain ', () => {
 
     // Jetton
     let jetton_sender: SandboxContract<TreasuryContract>;
+    let not_jetton_sender: SandboxContract<TreasuryContract>;
     let jetton_receiver: SandboxContract<TreasuryContract>;
     let not_jetton_receiver: SandboxContract<TreasuryContract>;
 
@@ -53,6 +55,7 @@ describe('Blockchain ', () => {
     let notTransferableSafeAddress: Address;
 
     let jetton_sender_jetton_wallet: SandboxContract<JettonWallet>;
+    let not_jetton_sender_jetton_wallet: SandboxContract<JettonWallet>;
     let jetton_receiver_jetton_wallet: SandboxContract<JettonWallet>;
     let transferable_safe_factory_jetton_wallet: SandboxContract<JettonWallet>;
 
@@ -71,6 +74,8 @@ describe('Blockchain ', () => {
         blockchain.now = BLOCKCHAIN_START_TIME;
 
         jetton_sender = await blockchain.treasury('jetton_sender');
+        not_jetton_sender = await blockchain.treasury('not_jetton_sender');
+        
         jetton_receiver = await blockchain.treasury('jetton_receiver');
         not_jetton_receiver = await blockchain.treasury('not_jetton_receiver');
 
@@ -79,14 +84,14 @@ describe('Blockchain ', () => {
         jettonUserWallet = async (address: Address) =>
             blockchain.openContract(JettonWallet.createFromAddress(await jettonMinter.getWalletAddress(address)));
 
-        // Need to add safe type TYPE!
+        // To-Do: need to add safe type TYPE! for better code readability
         transferable_safe_factory = openContractSafeFactory(
             blockchain,
             safe_code,
             jettonMinter.address,
             jetton_sender.address,
             safe_factory_code,
-            true,
+            true, // can be transfered 
         );
 
         not_transferable_safe_factory = openContractSafeFactory(
@@ -95,18 +100,26 @@ describe('Blockchain ', () => {
             jettonMinter.address,
             jetton_sender.address,
             safe_factory_code,
-            false,
+            false, // can not be transfered
         );
 
         // Preparations: deploy jetton minter + set initial balance to jetton wallets and check it
         await jettonMinter.sendDeploy(jetton_sender.getSender(), toNano('1'));
 
         jetton_sender_jetton_wallet = await jettonUserWallet(jetton_sender.address);
+        not_jetton_sender_jetton_wallet = await jettonUserWallet(not_jetton_sender.address);
         jetton_receiver_jetton_wallet = await jettonUserWallet(jetton_receiver.address);
 
         await jettonMinter.sendMint(
             jetton_sender.getSender(),
             jetton_sender.address,
+            INITIAL_JETTON_BALANCE,
+            toNano('0.05'),
+            toNano('1'),
+        );
+        await jettonMinter.sendMint(
+            jetton_sender.getSender(),
+            not_jetton_sender.address,
             INITIAL_JETTON_BALANCE,
             toNano('0.05'),
             toNano('1'),
@@ -270,30 +283,63 @@ describe('Blockchain ', () => {
             deployedNotTransferableSafe = blockchain.openContract(
                 Safe.createFromAddress(Address.parse(notTransferableSafeAddress.toString())),
             );
+
         });
 
         describe('when transfer Jettons', () => {
-            it('mints safe', async () => {
-                // transferable_safe_factory --> transferableSafeAddress
-                expect(sentTransferJettonsResult.transactions).toHaveTransaction({
-                    from: transferable_safe_factory.address,
-                    to: transferableSafeAddress,
-                    success: true,
-                    deploy: true,
+            describe('by jetton_sender (who originally deployed safe_factory)', () => {
+                it('mints safe', async () => {
+                    // transferable_safe_factory --> transferableSafeAddress
+                    expect(sentTransferJettonsResult.transactions).toHaveTransaction({
+                        from: transferable_safe_factory.address,
+                        to: transferableSafeAddress,
+                        success: true,
+                        deploy: true,
+                    });
+
+                    expect(sentTransferJettonsResult.transactions).toHaveTransaction({
+                        from: jetton_sender_jetton_wallet.address,
+                        to: transferable_safe_factory_jetton_wallet.address,
+                        success: true,
+                    });
+
+                    // We can also check it by looking at events:
+                    const isAccountCreated = hasAccountCreated(sentTransferJettonsResult.events);
+                    expect(isAccountCreated).toBe(true);
                 });
 
-                expect(sentTransferJettonsResult.transactions).toHaveTransaction({
-                    from: jetton_sender_jetton_wallet.address,
-                    to: transferable_safe_factory_jetton_wallet.address,
-                    success: true,
+                it('changes jetton balances', async () => {
+                    expect(BigInt(jettonSenderBalanceBeforeTransfer - jettonSenderBalanceAfterTransfer)).toEqual(
+                        BigInt(sentAmount),
+                    );
+                    expect(transferableSafeFactoryBalanceAfterTransfer).toEqual(BigInt(sentAmount));
                 });
             });
 
-            it('changes jetton balances', async () => {
-                expect(BigInt(jettonSenderBalanceBeforeTransfer - jettonSenderBalanceAfterTransfer)).toEqual(
-                    BigInt(sentAmount),
-                );
-                expect(transferableSafeFactoryBalanceAfterTransfer).toEqual(BigInt(sentAmount));
+            describe('by not_jetton_sender', () => {
+
+                let sentTransferJettonsByNotJettonSenderResult: SendMessageResult;
+
+                beforeAll(async () => {
+
+                    ///// not_jetton_sender sent Jettons to factory (he should not have ability to mint safe as result)
+                    sentTransferJettonsByNotJettonSenderResult = await not_jetton_sender_jetton_wallet.sendTransfer(
+                        not_jetton_sender.getSender(),
+                        toNano('1'), //tons
+                        sentAmount,
+                        transferable_safe_factory.address,
+                        not_jetton_sender.address,
+                        beginCell().endCell(),
+                        forwardAmount,
+                        safe_data,
+                    );
+                })
+            
+            
+                it('fails in case of minting safe', async () => {
+                    const isAccountCreated = hasAccountCreated(sentTransferJettonsByNotJettonSenderResult.events);
+                    expect(isAccountCreated).toBe(false);
+                });
             });
         });
 

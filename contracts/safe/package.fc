@@ -16,7 +16,6 @@ cell package::pack_safe_data(int collection_index, slice collection_address, sli
 
 (int, int, int, int, int) package::unpack_vesting_and_cliff_data(cell vesting_and_cliff_data) impure inline {
     slice vesting_and_cliff_ds = vesting_and_cliff_data.begin_parse();
-
     return (
         vesting_and_cliff_ds~load_uint(32), 
         vesting_and_cliff_ds~load_uint(32), 

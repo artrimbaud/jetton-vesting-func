@@ -40,6 +40,7 @@ global int storage::is_transferable; ;; does this safe allows transfers
         storage::is_active = ds~load_uint(1);
         storage::is_transferable = ds~load_uint(1);
     }
+    ds.end_parse();
 }
 
 () storage::save_data() impure {

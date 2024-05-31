@@ -12,3 +12,4 @@ tests/JettonWallet.spec.ts
 tests/JettonUtils.ts
 
 
+.env

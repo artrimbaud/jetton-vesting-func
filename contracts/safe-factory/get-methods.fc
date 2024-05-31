@@ -1,5 +1,5 @@
 #include "storage.fc";
-#include "../imports/utils.fc";
+#include "utils.fc";
 
 (int, int, cell, int, slice, int, slice, cell) get_storage_data() method_id {
     load_data();
@@ -20,10 +20,31 @@
     return (storage::next_item_index, storage::content, storage::creator_address);
 }
 
-{- 
 slice get_nft_address_by_index(int index) method_id {
     load_data();
     return utils::calculate_safe_address_by_index(my_address(), storage::safe_item_code, index);
-    ;;return 1;
 }
--}
+
+cell get_nft_content(int index, cell individual_content) method_id {
+    load_data();
+    slice cs = storage::content.begin_parse();
+    cs~load_ref();
+    slice common_content = cs~load_ref().begin_parse();
+
+    builder string = begin_cell();
+    tuple chars = null();
+    do {
+        int r = index~divmod(10);
+        chars = cons(r + 48, chars);
+    } until (index == 0);
+    do {
+        int char = chars~list_next();
+        string~store_uint(char, 8);
+    } until (null?(chars));
+    
+    return (begin_cell()
+                .store_uint(1, 8)  ;; offchain tag
+                .store_slice(common_content)
+                .store_builder(string)
+            .end_cell());
+}

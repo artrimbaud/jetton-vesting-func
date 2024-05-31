@@ -54,3 +54,8 @@
         storage::is_transferable
     );
 }
+
+(int, int, slice, slice, cell) get_nft_data() method_id {
+    storage::load_data();
+    return (storage::init?, storage::collection_index, storage::collection_address, storage::owner_address, storage::content);
+}

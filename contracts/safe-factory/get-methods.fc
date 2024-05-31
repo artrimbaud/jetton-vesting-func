@@ -1,4 +1,5 @@
 #include "storage.fc";
+#include "../imports/utils.fc";
 
 (int, int, cell, int, slice, int, slice, cell) get_storage_data() method_id {
     load_data();
@@ -14,7 +15,15 @@
 }
 
 
-(slice) get_safe_address_by_index(int item_index) method_id {
-    (_, _, _, _, _, _, slice safe_address, _) = get_storage_data();
-    return safe_address;
+(int, cell, slice) get_collection_data() method_id {
+    load_data();
+    return (storage::next_item_index, storage::content, storage::creator_address);
 }
+
+{- 
+slice get_nft_address_by_index(int index) method_id {
+    load_data();
+    return utils::calculate_safe_address_by_index(my_address(), storage::safe_item_code, index);
+    ;;return 1;
+}
+-}

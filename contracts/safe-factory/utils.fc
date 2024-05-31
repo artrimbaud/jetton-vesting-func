@@ -1,6 +1,89 @@
 #include "../imports/constants.fc";
 
 
+cell calculate_state_init(slice collection_address, cell safe_item_code, int item_index) inline {
+    return begin_cell()
+                .store_uint(0, 2)
+                .store_dict(safe_item_code)
+                .store_dict(
+                    begin_cell().store_uint(item_index, 32).store_slice(collection_address).end_cell()
+                )
+                .store_uint(0, 1)
+            .end_cell();
+}
+
+slice calculate_safe_item_address(cell safe_item_code, cell state_init) inline {
+    return begin_cell()
+                .store_uint(4, 3)
+                .store_int(0, 8)  ;; workchain();
+                .store_uint(cell_hash(state_init), 256)
+                .end_cell()
+            .begin_parse();
+}
+
+slice utils::calculate_safe_address_by_index(slice collection_address, cell safe_item_code, int item_index) inline {
+    return begin_cell()
+                .store_uint(4, 3)
+                .store_int(0, 8)  ;; workchain();
+                .store_uint(cell_hash(calculate_state_init(collection_address, safe_item_code, item_index)), 256)
+                .end_cell()
+            .begin_parse();
+}
+
+() deploy_safe_item(int item_index, cell safe_item_code, cell safe_content, slice collection_address) impure inline {
+
+    cell state_init = calculate_state_init(collection_address, safe_item_code, item_index);
+    slice safe_address = calculate_safe_item_address(safe_item_code, state_init);
+    builder msg = begin_cell()
+                    .store_uint(0x18, 6)
+                    .store_slice(safe_address)
+                    .store_coins(0)
+                    .store_uint(4 + 2 + 1, 1 + 4 + 4 + 64 + 32 + 1 + 1 + 1)
+                    .store_ref(state_init)
+                    .store_ref(safe_content);
+
+    send_raw_message(msg.end_cell(), mode::carry_remaining_gas); 
+
+}
+
+
+() send_jettons(int query_id, int jetton_amount, slice to_address, slice response_address, slice jetton_wallet_address, 
+                int msg_value, int sending_mode, int forward_ton_amount, cell forward_payload) impure inline {
+
+    builder msg_body = begin_cell()
+                        .store_uint(op::transfer_jetton, 32)
+                        .store_uint(query_id, 64)
+                        .store_coins(jetton_amount)
+                        .store_slice(to_address);
+    ifnot (null?(response_address)) {
+        msg_body = msg_body.store_slice(response_address);
+    }
+    else {
+        msg_body = msg_body.store_uint(0, 2);
+    }
+    msg_body = msg_body.store_uint(0, 1)
+                        .store_coins(forward_ton_amount)
+                        .store_uint(1, 1);
+
+    ifnot(null?(forward_payload)) {
+        msg_body = msg_body.store_dict(forward_payload);
+    }
+    else {
+        msg_body = msg_body.store_uint(0, 1);
+    }
+
+    builder msg = begin_cell()
+                .store_uint(0x10, 6) 
+                .store_slice(jetton_wallet_address)
+                .store_coins(msg_value)
+                .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1)
+                .store_uint(1, 1)
+                .store_ref(msg_body.end_cell());
+            
+    send_raw_message(msg.end_cell(), sending_mode);  
+}
+
+
 () send_provide_wallet_address_message(slice jetton_wallet_address) impure inline {
 
     builder tmp = begin_cell()
@@ -60,3 +143,4 @@
         return 0;
     }
 }
+

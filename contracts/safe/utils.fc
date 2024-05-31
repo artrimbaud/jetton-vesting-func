@@ -79,3 +79,11 @@
     storage::owner_address = new_owner_address;
     storage::save_data();
 }
+
+int get_forward_fee(slice cs) inline {
+    cs~load_msg_addr();  ;; skip dst
+    cs~load_coins();  ;; skip value
+    cs~skip_bits(1);  ;; skip extracurrency collection
+    cs~load_coins();  ;; skip ihr_fee
+    return muldiv(cs~load_coins(), 3, 2);  ;; we use message fwd_fee for estimation of forward_payload costs
+}

@@ -34,12 +34,13 @@
         
         in_msg_body~skip_bits(64); ;; skip next_item_index
         storage::owner_address = in_msg_body~load_msg_addr();
+        storage::content = in_msg_body~load_ref();
+
         storage::vesting_total_amount = in_msg_body~load_coins();
         storage::claimed_amount = 0;
         storage::vesting_and_cliff_data = in_msg_body~load_ref();
         utils::unfreeze_safe();
         storage::is_transferable = in_msg_body~load_uint(1);
-
 
         storage::save_data();
         return ();
@@ -53,6 +54,7 @@
         utils::transfer_ownership(my_balance, sender_address, query_id, in_msg_body, fwd_fee, storage::is_transferable);
         return ();
     }
+
 
     if (op == op::claim_safe) {
         
@@ -78,6 +80,13 @@
 
         storage::save_data();
         return();
+    }
+
+
+    if (op == op::get_static_data) {
+        send_msg(sender_address, 0, op::report_static_data, query_id, 
+                 begin_cell().store_uint(storage::collection_index, 256).store_slice(storage::collection_address), mode::carry_remaining_gas | mode::bounce_on_fail);
+        return ();
     }
 
     throw(0xffff);

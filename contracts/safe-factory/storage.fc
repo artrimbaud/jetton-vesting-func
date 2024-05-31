@@ -12,6 +12,7 @@ global slice storage::jetton_wallet_address; ;; initially here is jetton_master_
 global int storage::jetton_wallet_set;                                                                                       
 
 global slice storage::creator_address; 
+global cell storage::content;
 
 
 () load_data() impure inline {
@@ -27,10 +28,12 @@ global slice storage::creator_address;
     storage::jetton_wallet_set = ds~load_uint(1);
     storage::creator_address = ds~load_msg_addr();
 
+    storage::content = ds~load_ref();
+
 }
 
 () save_data() impure inline {
     set_data(
-        package::pack_safe_factory_data(storage::init?, storage::next_item_index, storage::safe_item_code, storage::safe_type, storage::jetton_wallet_address, storage::jetton_wallet_set, storage::creator_address)
+        package::pack_safe_factory_data(storage::init?, storage::next_item_index, storage::safe_item_code, storage::safe_type, storage::jetton_wallet_address, storage::jetton_wallet_set, storage::creator_address, storage::content)
     );
 }

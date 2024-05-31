@@ -1,9 +1,10 @@
 
-cell package::pack_safe_data(int collection_index, slice collection_address, slice owner_address, int vesting_total_amount, int claimed_amount, cell vesting_and_cliff_data, int is_active, int is_transferable) inline {
+cell package::pack_safe_data(int collection_index, slice collection_address, slice owner_address, cell content, int vesting_total_amount, int claimed_amount, cell vesting_and_cliff_data, int is_active, int is_transferable) inline {
     return begin_cell()
                 .store_uint(collection_index, 32)
                 .store_slice(collection_address)
                 .store_slice(owner_address)
+                .store_ref(content)
 
                 .store_coins(vesting_total_amount)
                 .store_coins(claimed_amount)

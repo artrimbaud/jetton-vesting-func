@@ -42,6 +42,8 @@ const int op::ownership_assigned_safe = 0x05138d91;
 const int op::claim_safe              = 0xa769de27; ;;
 const int op::change_state_safe       = 0xdca3da4c;
 
+const int op::get_static_data        = 0x2fcb26a2;
+const int op::report_static_data     = 0x8b771735;
 
 
 {- MESSAGE MODES -}

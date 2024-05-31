@@ -1,8 +1,9 @@
 import { Address, beginCell, Cell, Contract, contractAddress, ContractProvider, Sender, SendMode } from '@ton/core';
-import { Safe } from '../Safe/Safe';
+import { Safe, SafeContent } from '../Safe/Safe';
 
 export type SafeMintPayload = {
     jetton_receiver: Address;
+    content: Cell;
 
     vesting_start_time: number;
     cliff_duration: number;
@@ -19,6 +20,14 @@ export type SafeFactoryConfig = {
     jetton_wallet_address: Address;
     jetton_wallet_set: number;
     creator_address: Address;
+    content: Cell;
+};
+
+export type SafeFactoryContent = {
+    image: string;
+    name: string;
+    description: string;
+    cover_image: string;
 };
 
 export function SafeFactoryConfigToCell(config: SafeFactoryConfig): Cell {
@@ -30,6 +39,7 @@ export function SafeFactoryConfigToCell(config: SafeFactoryConfig): Cell {
         .storeAddress(config.jetton_wallet_address)
         .storeBit(config.jetton_wallet_set)
         .storeAddress(config.creator_address)
+        .storeRef(config.content)
         .endCell();
 }
 
@@ -47,6 +57,9 @@ export class SafeFactory implements Contract {
         return beginCell()
             .storeAddress(config.jetton_receiver)
             .storeRef(
+                config.content
+            )
+            .storeRef(
                 Safe.safeVestingAndCliffDataConfigToCell({
                     vesting_start_time: config.vesting_start_time,
                     cliff_duration: config.cliff_duration,
@@ -56,6 +69,16 @@ export class SafeFactory implements Contract {
                 }),
             )
             .endCell();
+    }
+
+    static safeFactoryContentToCell(content: SafeFactoryContent) {
+        return beginCell()
+                .storeStringTail(content.image)
+                .storeStringTail(content.name)
+                .storeStringTail(content.description)
+                .storeStringTail(content.cover_image)
+            .endCell();
+                
     }
 
     static createFromConfig(config: SafeFactoryConfig, code: Cell, workchain = 0) {

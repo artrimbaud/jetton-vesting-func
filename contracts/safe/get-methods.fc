@@ -37,13 +37,14 @@
 }
 
 
-(int, int, slice, slice, int, int, cell, int, int) get_storage_data() method_id {
+(int, int, slice, slice, cell, int, int, cell, int, int) get_storage_data() method_id {
     storage::load_data();
     return (
         storage::init?,
         storage::collection_index, 
         storage::collection_address, 
         storage::owner_address,
+        storage::content,
 
         storage::vesting_total_amount,
         storage::claimed_amount,

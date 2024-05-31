@@ -65,13 +65,14 @@
         slice safe_data_slice = in_msg_body~load_ref().begin_parse();
 
         slice jetton_receiver = safe_data_slice~load_msg_addr();
+        cell content = safe_data_slice~load_ref();
         cell vesting_and_cliff_data = safe_data_slice~load_ref();
         safe_data_slice.end_parse();
 
         throw_unless(exc::incorrect_vesting_and_cliff_data, utils::is_vesting_and_cliff_data_correct(vesting_and_cliff_data));
 
-        cell safe_content = package::pack_safe_content(storage::next_item_index, jetton_receiver, transferred_jettons, vesting_and_cliff_data, storage::safe_type);
-        deploy_safe_item(storage::next_item_index, storage::safe_item_code, safe_content, my_address());  ;; deploy bond safe
+        cell safe_content = package::pack_safe_content(storage::next_item_index, jetton_receiver, content, transferred_jettons, vesting_and_cliff_data, storage::safe_type);
+        deploy_safe_item(storage::next_item_index, storage::safe_item_code, safe_content, my_address());  ;; deploy safe
         
         storage::next_item_index += 1;
     

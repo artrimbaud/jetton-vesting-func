@@ -67,6 +67,12 @@ export function openContractSafeFactory(
                 jetton_wallet_set: 0,
 
                 creator_address: jetton_sender_address,
+                content: SafeFactory.safeFactoryContentToCell({
+                    image: "MOCK",
+                    name: "MOCK",
+                    description: "MOCK",
+                    cover_image: "MOCK",
+                }),
             },
             safe_factory_code,
         ),

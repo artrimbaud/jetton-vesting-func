@@ -1,7 +1,7 @@
 
 
 
-cell package::pack_safe_factory_data(int init, int next_item_index, cell safe_item_code, int safe_type, slice jetton_wallet_address, int jetton_wallet_set, slice creator_address) inline {
+cell package::pack_safe_factory_data(int init, int next_item_index, cell safe_item_code, int safe_type, slice jetton_wallet_address, int jetton_wallet_set, slice creator_address, cell content) inline {
     return begin_cell()
         
         .store_uint(init, 1)
@@ -14,14 +14,17 @@ cell package::pack_safe_factory_data(int init, int next_item_index, cell safe_it
         .store_uint(jetton_wallet_set, 1)
         .store_slice(creator_address)
 
+        .store_ref(content)
+
     .end_cell();
 }
 
 
-cell package::pack_safe_content(int next_item_index, slice jetton_receiver, int transferred_jettons, cell vesting_and_cliff_data, int is_transferable) impure inline {
+cell package::pack_safe_content(int next_item_index, slice jetton_receiver, cell content, int transferred_jettons, cell vesting_and_cliff_data, int is_transferable) impure inline {
     return begin_cell()
         .store_uint(next_item_index, 64)
         .store_slice(jetton_receiver)
+        .store_ref(content)
         .store_coins(transferred_jettons)
 
         .store_ref(vesting_and_cliff_data)

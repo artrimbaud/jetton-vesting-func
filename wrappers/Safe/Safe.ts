@@ -11,6 +11,17 @@ import {
 } from '@ton/core';
 import { Op, Gas } from './SafeConstants';
 
+
+
+export type SafeContent = {
+    name: string;
+    description: string;
+    image: string;
+    edition: string;
+    origin: string;
+};
+
+
 export type SafeVestingAndCliffConfig = {
     vesting_start_time: number;
     cliff_duration: number;
@@ -54,6 +65,16 @@ export class Safe implements Contract {
             .storeUint(config.unlock_period, 32)
             .storeUint(config.initially_unlocked_percentage, 32)
             .endCell();
+    }
+
+    static safeContentToCell(content: SafeContent) {
+        return beginCell()
+                .storeStringTail(content.name)
+                .storeStringTail(content.description)
+                .storeStringTail(content.image)
+                .storeStringTail(content.edition)
+                .storeStringTail(content.origin)
+            .endCell()
     }
 
     static createFromConfig(config: SafeConfig, code: Cell, workchain = 0) {
@@ -124,6 +145,8 @@ export class Safe implements Contract {
         const collection_index = result.stack.readBigNumber();
         const collection_address = result.stack.readAddress();
         const owner_address = result.stack.readAddress();
+        
+        const content = result.stack.readCell();
 
         const vesting_total_amount = result.stack.readBigNumber();
         const claimed_amount = result.stack.readBigNumber();

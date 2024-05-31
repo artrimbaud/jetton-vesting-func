@@ -204,6 +204,13 @@ describe('Blockchain ', () => {
             // Safe factory payload for minting safe
             safe_data = SafeFactory.safeMintPayloadToCell({
                 jetton_receiver: jetton_receiver.address,
+                content: Safe.safeContentToCell({
+                    name: "MOCK",
+                    description: "MOCK",
+                    image: "MOCK",
+                    edition: "MOCK",
+                    origin: "MOCK",
+                }),
                 vesting_start_time: VESTING_START_TIME,
                 cliff_duration: CLIFF_DURATION,
                 vesting_total_duration: VESTING_TOTAL_DURATION,

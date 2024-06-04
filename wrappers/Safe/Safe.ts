@@ -66,7 +66,6 @@ export class Safe implements Contract {
     static safeContentToCell(content: SafeContent) {
         return (
             beginCell()
-                .storeUint(1, 8) 
                 .storeRef(beginCell().storeStringTail(content.uri).endCell())
             .endCell()
         );

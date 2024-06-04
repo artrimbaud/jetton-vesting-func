@@ -6,8 +6,6 @@ dist
 
 app.log
 
-scripts
-
 tests/JettonWallet.spec.ts
 tests/JettonUtils.ts
 

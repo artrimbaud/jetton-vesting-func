@@ -100,14 +100,6 @@ export class Safe implements Contract {
         });
     }
 
-    async sendClaimSafeMessageWithNotEnoughGas(provider: ContractProvider, via: Sender) {
-        await provider.internal(via, {
-            sendMode: SendMode.PAY_GAS_SEPARATELY,
-            body: Safe.claimSafeMessage(),
-            value: toNano('0.2'),
-        });
-    }
-
     async sendTransferSafe(
         provider: ContractProvider,
         via: Sender,

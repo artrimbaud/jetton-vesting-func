@@ -11,6 +11,8 @@ const int exc::only_owner_can_transfer = 401;
 const int exc::excess_in_the_slice = 708;
 const int exc::not_enough_gas = 402;
 
+const int exc::not_collection_address = 405;
+
 const int exc::unsupported_op = 0xffff; ;;
 
 

@@ -3,11 +3,9 @@
 
 (int, int, cell, int, slice, int, slice, cell) get_storage_data() method_id {
     load_data();
-    
     return (storage::init?, storage::next_item_index, storage::safe_item_code, storage::safe_type,
     storage::jetton_wallet_address, storage::jetton_wallet_set, storage::creator_address, storage::content);
 }
-
 
 (int) get_next_item_index() method_id {
     load_data();
@@ -32,7 +30,7 @@ cell get_nft_content(int index, cell individual_nft_content) method_id {
   slice common_content = cs~load_ref().begin_parse();
 
   return (begin_cell()
-                      .store_uint(1, 8) ;; offchain tag
+                      .store_uint(1, 8)
                       .store_slice(common_content)
                       .store_ref(individual_nft_content)
           .end_cell());

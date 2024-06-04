@@ -205,11 +205,7 @@ describe('Blockchain ', () => {
             safe_data = SafeFactory.safeMintPayloadToCell({
                 jetton_receiver: jetton_receiver.address,
                 content: Safe.safeContentToCell({
-                    name: "MOCK",
-                    description: "MOCK",
-                    image: "MOCK",
-                    edition: "MOCK",
-                    origin: "MOCK",
+                    uri: "1.json"
                 }),
                 vesting_start_time: VESTING_START_TIME,
                 cliff_duration: CLIFF_DURATION,

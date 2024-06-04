@@ -30,7 +30,7 @@
     int fwd_fee = get_forward_fee(cs);
 
     if (storage::init? == 0) {
-        throw_unless(405, address::is_collection_address(sender_address));
+        throw_unless(exc::not_collection_address, address::is_collection_address(sender_address));
         
         in_msg_body~skip_bits(64); ;; skip next_item_index
         storage::owner_address = in_msg_body~load_msg_addr();

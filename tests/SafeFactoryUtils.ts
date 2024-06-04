@@ -68,10 +68,8 @@ export function openContractSafeFactory(
 
                 creator_address: jetton_sender_address,
                 content: SafeFactory.safeFactoryContentToCell({
-                    image: "MOCK",
-                    name: "MOCK",
-                    description: "MOCK",
-                    cover_image: "MOCK",
+                    uri: "https://static.storm.tg/vesting/root.json",
+                    base: "https://static.storm.tg/vesting/"
                 }),
             },
             safe_factory_code,

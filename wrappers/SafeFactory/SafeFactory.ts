@@ -24,11 +24,13 @@ export type SafeFactoryConfig = {
 };
 
 export type SafeFactoryContent = {
-    image: string;
-    name: string;
-    description: string;
-    cover_image: string;
+    uri: string;
+    base: string;
 };
+
+
+const OFFCHAIN_CONTENT_PREFIX = 0x01;
+
 
 export function SafeFactoryConfigToCell(config: SafeFactoryConfig): Cell {
     return beginCell()
@@ -72,13 +74,12 @@ export class SafeFactory implements Contract {
     }
 
     static safeFactoryContentToCell(content: SafeFactoryContent) {
-        return beginCell()
-                .storeStringTail(content.image)
-                .storeStringTail(content.name)
-                .storeStringTail(content.description)
-                .storeStringTail(content.cover_image)
-            .endCell();
-                
+        const offchain_data: Cell = beginCell()
+            .storeUint(OFFCHAIN_CONTENT_PREFIX, 8)
+            .storeStringTail(content.uri)
+        .endCell();
+        const base: Cell = beginCell().storeStringTail(content.base).endCell();
+        return beginCell().storeRef(offchain_data).storeRef(base).endCell();
     }
 
     static createFromConfig(config: SafeFactoryConfig, code: Cell, workchain = 0) {

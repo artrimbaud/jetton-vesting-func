@@ -14,11 +14,7 @@ import { Op, Gas } from './SafeConstants';
 
 
 export type SafeContent = {
-    name: string;
-    description: string;
-    image: string;
-    edition: string;
-    origin: string;
+    uri: string
 };
 
 
@@ -68,13 +64,12 @@ export class Safe implements Contract {
     }
 
     static safeContentToCell(content: SafeContent) {
-        return beginCell()
-                .storeStringTail(content.name)
-                .storeStringTail(content.description)
-                .storeStringTail(content.image)
-                .storeStringTail(content.edition)
-                .storeStringTail(content.origin)
+        return (
+            beginCell()
+                .storeUint(1, 8) 
+                .storeRef(beginCell().storeStringTail(content.uri).endCell())
             .endCell()
+        );
     }
 
     static createFromConfig(config: SafeConfig, code: Cell, workchain = 0) {

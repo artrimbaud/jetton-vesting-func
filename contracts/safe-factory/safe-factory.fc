@@ -20,7 +20,7 @@
     slice sender_address = cs~load_msg_addr();
 
     load_data();
-
+    
 
     if (storage::init? == 0) {  ;; request jetton wallets' addresses after deploy
         throw_unless(exc::incorrect_sender, address::is_creator_address(sender_address));

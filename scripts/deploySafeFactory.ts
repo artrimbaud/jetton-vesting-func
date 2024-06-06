@@ -14,9 +14,9 @@ export async function run(provider: NetworkProvider) {
         SafeFactory.createFromConfig(
             {
                 init: 0,
-                next_item_index: BigInt(1),
+                next_item_index: BigInt(0),
                 safe_code: safe_code,
-                safe_type: false,
+                safe_type: true,
 
                 jetton_wallet_address: Address.parse("kQDS1Pk3ZsbyS_gyA1qA-J1uXXWzZK8fNoGZ9ynKioDnALSv"),
                 jetton_wallet_set: 0,

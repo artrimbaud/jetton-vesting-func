@@ -143,6 +143,7 @@ describe('Blockchain ', () => {
         expect(await jetton_receiver_jetton_wallet.getJettonBalance()).toBe(INITIAL_JETTON_BALANCE);
 
         SafeFactoryDeploy = await transferable_safe_factory.sendDeploy(jetton_sender.getSender(), toNano('1'));
+        
         await not_transferable_safe_factory.sendDeploy(jetton_sender.getSender(), toNano('1'));
     });
 
@@ -199,7 +200,7 @@ describe('Blockchain ', () => {
 
         beforeAll(async () => {
             sentAmount = toNano('50');
-            forwardAmount = toNano('0.3');
+            forwardAmount = toNano('1');
 
             // Safe factory payload for minting safe
             safe_data = SafeFactory.safeMintPayloadToCell({
@@ -241,7 +242,7 @@ describe('Blockchain ', () => {
             // Transfering
             sentTransferJettonsResult = await jetton_sender_jetton_wallet.sendTransfer(
                 jetton_sender.getSender(),
-                toNano('1'), //tons
+                toNano('1.5'), //tons
                 sentAmount,
                 transferable_safe_factory.address,
                 jetton_sender.address,
@@ -249,6 +250,15 @@ describe('Blockchain ', () => {
                 forwardAmount,
                 safe_data,
             );
+
+            console.log('------------------------');
+            console.log(sentTransferJettonsResult.transactions[0].description);
+            console.log(sentTransferJettonsResult.transactions[1].description);
+            console.log(sentTransferJettonsResult.transactions[2].description);
+            console.log(sentTransferJettonsResult.transactions[3].description);
+            console.log(sentTransferJettonsResult.transactions[4].description);
+            console.log(sentTransferJettonsResult.transactions[5].description);
+            console.log('------------------------');
 
             // We assume we can extract safe address exactly from 5th transaction.
             const transferableSafeAddressBigIntFormat: bigint = sentTransferJettonsResult.transactions[5].address;
@@ -268,7 +278,7 @@ describe('Blockchain ', () => {
 
             sentTransferJettonsToNotTransferableSafeResult = await jetton_sender_jetton_wallet.sendTransfer(
                 jetton_sender.getSender(),
-                toNano('1'), //tons
+                toNano('1.5'), //tons
                 sentAmount,
                 not_transferable_safe_factory.address,
                 jetton_sender.address,
@@ -328,7 +338,7 @@ describe('Blockchain ', () => {
                     ///// not_jetton_sender sent Jettons to factory (he should not have ability to mint safe as result)
                     sentTransferJettonsByNotJettonSenderResult = await not_jetton_sender_jetton_wallet.sendTransfer(
                         not_jetton_sender.getSender(),
-                        toNano('1'), //tons
+                        toNano('1.5'), //tons
                         sentAmount,
                         transferable_safe_factory.address,
                         not_jetton_sender.address,

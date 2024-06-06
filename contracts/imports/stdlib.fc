@@ -625,3 +625,7 @@ int equal_slices(slice a, slice b) asm "SDEQ";
 
 ;;; Concatenates two builders
 builder store_builder(builder to, builder from) asm "STBR";
+
+
+;; CUSTOM
+int get_compute_fee(int workchain, int gas_used) asm(gas_used workchain) "GETGASFEE";

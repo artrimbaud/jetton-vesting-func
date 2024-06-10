@@ -60,13 +60,13 @@
         
         throw_unless(exc::incorrect_sender, address::is_owner_address(sender_address));
         throw_unless(exc::already_claimed, utils::is_unfreezed());
-        throw_unless(exc::out_of_gas, msg_value >= gas::claim_safe);
+        throw_unless(exc::out_of_gas, msg_value >= get_compute_fee(WORKCHAIN, CLAIM_SAFE_GAS));
 
         int available_for_claim = get_available_for_claim_amount();
         int future_claimed_amount = storage::claimed_amount + available_for_claim;
 
         send_claim_message(op, query_id, available_for_claim, future_claimed_amount);
-        
+
         utils::freeze_safe();
         storage::save_data();
         return();

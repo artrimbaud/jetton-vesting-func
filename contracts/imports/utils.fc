@@ -1,5 +1,6 @@
 #include "stdlib.fc";
 #include "workchain.fc";
+#include "constants.fc";
 
 () send_msg(slice to_address, int amount, int op, int query_id, builder payload, int sending_mode) impure inline {
     var msg = begin_cell()

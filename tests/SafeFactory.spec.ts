@@ -75,7 +75,7 @@ describe('Blockchain ', () => {
 
         jetton_sender = await blockchain.treasury('jetton_sender');
         not_jetton_sender = await blockchain.treasury('not_jetton_sender');
-        
+
         jetton_receiver = await blockchain.treasury('jetton_receiver');
         not_jetton_receiver = await blockchain.treasury('not_jetton_receiver');
 
@@ -91,7 +91,7 @@ describe('Blockchain ', () => {
             jettonMinter.address,
             jetton_sender.address,
             safe_factory_code,
-            true, // can be transfered 
+            true, // can be transfered
         );
 
         not_transferable_safe_factory = openContractSafeFactory(
@@ -143,7 +143,7 @@ describe('Blockchain ', () => {
         expect(await jetton_receiver_jetton_wallet.getJettonBalance()).toBe(INITIAL_JETTON_BALANCE);
 
         SafeFactoryDeploy = await transferable_safe_factory.sendDeploy(jetton_sender.getSender(), toNano('1'));
-        
+
         await not_transferable_safe_factory.sendDeploy(jetton_sender.getSender(), toNano('1'));
     });
 
@@ -206,7 +206,7 @@ describe('Blockchain ', () => {
             safe_data = SafeFactory.safeMintPayloadToCell({
                 jetton_receiver: jetton_receiver.address,
                 content: Safe.safeContentToCell({
-                    uri: "1.json"
+                    uri: '1.json',
                 }),
                 vesting_start_time: VESTING_START_TIME,
                 cliff_duration: CLIFF_DURATION,
@@ -251,15 +251,6 @@ describe('Blockchain ', () => {
                 safe_data,
             );
 
-            console.log('------------------------');
-            console.log(sentTransferJettonsResult.transactions[0].description);
-            console.log(sentTransferJettonsResult.transactions[1].description);
-            console.log(sentTransferJettonsResult.transactions[2].description);
-            console.log(sentTransferJettonsResult.transactions[3].description);
-            console.log(sentTransferJettonsResult.transactions[4].description);
-            console.log(sentTransferJettonsResult.transactions[5].description);
-            console.log('------------------------');
-
             // We assume we can extract safe address exactly from 5th transaction.
             const transferableSafeAddressBigIntFormat: bigint = sentTransferJettonsResult.transactions[5].address;
             transferableSafeAddress = Address.parseRaw(
@@ -296,7 +287,6 @@ describe('Blockchain ', () => {
             deployedNotTransferableSafe = blockchain.openContract(
                 Safe.createFromAddress(Address.parse(notTransferableSafeAddress.toString())),
             );
-
         });
 
         describe('when transfer Jettons', () => {
@@ -330,11 +320,9 @@ describe('Blockchain ', () => {
             });
 
             describe('by not_jetton_sender', () => {
-
                 let sentTransferJettonsByNotJettonSenderResult: SendMessageResult;
 
                 beforeAll(async () => {
-
                     ///// not_jetton_sender sent Jettons to factory (he should not have ability to mint safe as result)
                     sentTransferJettonsByNotJettonSenderResult = await not_jetton_sender_jetton_wallet.sendTransfer(
                         not_jetton_sender.getSender(),
@@ -346,9 +334,8 @@ describe('Blockchain ', () => {
                         forwardAmount,
                         safe_data,
                     );
-                })
-            
-            
+                });
+
                 it('fails in case of minting safe', async () => {
                     const isAccountCreated = hasAccountCreated(sentTransferJettonsByNotJettonSenderResult.events);
                     expect(isAccountCreated).toBe(false);

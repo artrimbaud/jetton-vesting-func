@@ -20,7 +20,6 @@
     slice sender_address = cs~load_msg_addr();
 
     load_data();
-    
 
     if (storage::init? == 0) {  ;; request jetton wallets' addresses after deploy
         throw_unless(exc::incorrect_sender, address::is_creator_address(sender_address));
@@ -56,9 +55,9 @@
         int transferred_jettons = in_msg_body~load_coins();
         slice from_address = in_msg_body~load_msg_addr();
         
-        ifnot (address::is_jetton_wallet_address(sender_address) & address::is_creator_address(from_address)) {
+        ifnot (address::is_jetton_wallet_address(sender_address) & address::is_creator_address(from_address) & (msg_value > get_compute_fee(WORKCHAIN, DEPLOY_SAFE_GAS))) {
             send_jettons(query_id, transferred_jettons, from_address, from_address, sender_address, 0, mode::carry_remaining_gas,
-                         0, begin_cell().store_uint(0, 32).store_slice("Check sender failed").end_cell());
+                         0, begin_cell().store_uint(0, 32).store_slice("Can't deploy.").end_cell());
             return();
         }
 
@@ -92,7 +91,7 @@
         int future_claimed_jettons = in_msg_body~load_coins();
         in_msg_body.end_parse();
 
-        send_jettons(query_id, jettons_to_transfer, from_address, from_address, storage::jetton_wallet_address, gas::jetton_transfer, mode::simple, 
+        send_jettons(query_id, jettons_to_transfer, from_address, from_address, storage::jetton_wallet_address, get_compute_fee(WORKCHAIN, JETTON_TRANSFER_GAS), mode::simple, 
                      1, begin_cell().store_uint(0, 32).store_slice("Rewards claimed").end_cell());  ;; send rewards
 
         ;; change safe state

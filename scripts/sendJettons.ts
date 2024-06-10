@@ -27,10 +27,10 @@ export async function run(provider: NetworkProvider) {
    );
 
     const sender = Address.parse("0QBqaHqgAegzKkUZh6uQHwyRz1H-mwLl_OY1BRItXAeYxr-C");
-    const receiver = Address.parse("0QAbHxenT6ot-hQuxZgtPeo-iU1BKI3nDLiFRGFT6NgkpjgE");
+    const receiver = Address.parse("0QDw6KsqikTuWEj97m1QCUjYXkW9Xg84NxttP79NMbWyh61E");
 
-    const senderJettonAddress = Address.parse("kQCOj99Ywl8yrvvfFwPLvOQ9lp7BBlODAvnDhPfTMa5r2jXU");
-    const receiverJettonAddress = Address.parse("kQBnEzb__WomkFYkcI1_PgRbYL4EC-9EBB8RpfGD3u8YIxTW");
+    //const senderJettonAddress = Address.parse("kQCOj99Ywl8yrvvfFwPLvOQ9lp7BBlODAvnDhPfTMa5r2jXU");
+    //const receiverJettonAddress = Address.parse("kQBnEzb__WomkFYkcI1_PgRbYL4EC-9EBB8RpfGD3u8YIxTW");
 
 
     const senderJettonWallet = await userWallet(sender);
@@ -38,19 +38,19 @@ export async function run(provider: NetworkProvider) {
     const vestingAddress = SafeFactory.createFromAddress(Address.parse("kQCOj99Ywl8yrvvfFwPLvOQ9lp7BBlODAvnDhPfTMa5r2jXU"));
   
     
-    let sentAmount = toNano('50');
+    let sentAmount = toNano('30');
     let forwardAmount = toNano('1');
 
     const safe_data = SafeFactory.safeMintPayloadToCell({
         jetton_receiver: receiver,
         content: Safe.safeContentToCell({
-          uri: "11.json"
+          uri: "17.json"
         }),
-        vesting_start_time: 1717519343,
+        vesting_start_time: 1718008457,
         cliff_duration: 0,
         vesting_total_duration: 1000000,
-        unlock_period: 500,
-        initially_unlocked_percentage: 5,
+        unlock_period: 100,
+        initially_unlocked_percentage: 10,
     });
 
     const sendResult = await senderJettonWallet.sendTransfer(
